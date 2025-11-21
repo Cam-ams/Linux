@@ -545,7 +545,7 @@ systemctl enable --now paperless-web.service
 systemctl enable --now paperless-consumer.service
 ```
 
-**🔗 Lien avec le cours :**  
+**Lien avec le cours :**  
 - `daemon-reload` : Recharge la configuration systemd après ajout de fichiers `.service`
 - `enable` : Crée un lien symbolique dans `/etc/systemd/system/multi-user.target.wants/`
 - Vérification : `systemctl status paperless-web.service`
@@ -629,7 +629,7 @@ restic forget \
 echo "Backup terminé avec succès - $(date)"
 ```
 
-**🔗 Lien avec le cours :**  
+**Lien avec le cours :**  
 **Scripting Bash** (cours "Rappels sur le terminal", slide 6-8) :
 - `set -e` : Arrête le script dès qu'une commande échoue (gestion des erreurs)
 - Variables : `RESTIC_REPOSITORY`, `BACKUP_SOURCE`
@@ -654,17 +654,16 @@ crontab -e
 
 **Format Cron :**
 ```
-┌───────────── minute (0 - 59)
-│ ┌───────────── heure (0 - 23)
-│ │ ┌───────────── jour du mois (1 - 31)
-│ │ │ ┌───────────── mois (1 - 12)
-│ │ │ │ ┌───────────── jour de la semaine (0 - 6) (Dimanche = 0)
-│ │ │ │ │
-│ │ │ │ │
-0 * * * * /opt/scripts/backup_paperless.sh
+## * - - - - minute 
+## - * - - - heure (0 - 23)
+## - - * - - jour du mois 
+## - - - * - mois 
+## - - - - * jour de la semaine 
+
+* 2 * * * /opt/scripts/backup_paperless.sh
 ```
 
-**🔗 Lien avec le cours :**  
+**Lien avec le cours :**  
 `cron` est un **daemon** système (cours "Le système d'exploitation", slide 3) qui exécute des tâches planifiées. Il vérifie toutes les minutes s'il y a des commandes à lancer selon le planning défini dans les crontabs.
 
 ### 3.4. Synchronisation vers Google Drive avec Rclone
