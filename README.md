@@ -410,7 +410,7 @@ rclone sync \
     --progress \
     --log-file /var/log/rclone_sync.log
 
-echo "Synchronisation terminée - $(date)"
+echo "Synchronisation terminée"
 ```
 
 **Ajout au crontab :**
