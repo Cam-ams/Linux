@@ -362,7 +362,6 @@ echo "Backup terminé avec succès - $(date)"
 
 **Lien avec le cours :**  
 **Scripting Bash** :
-- `set -e` : Arrête le script dès qu'une commande échoue (gestion des erreurs)
 - Redirection : `> /tmp/paperless_db_backup.sql` (STDOUT)
 
 **Rendre le script exécutable :**
@@ -393,17 +392,13 @@ crontab -e
 ```
 
 **Lien avec le cours :**  
-`cron` est un **daemon** système (cours "Le système d'exploitation", slide 3) qui exécute des tâches planifiées. Il vérifie toutes les minutes s'il y a des commandes à lancer selon le planning défini dans les crontabs.
+`cron` est un **daemon** système qui exécute des tâches planifiées. Il vérifie toutes les 2 heures s'il y a des commandes à lancer selon le planning défini dans les crontabs.
 
-### 3.4. Synchronisation vers Google Drive avec Rclone
+### 3.4. Synchronisation
 
 ```bash
-# Configuration de Rclone (interactive)
+# Configuration de Rclone 
 rclone config
-
-# Nom: gdrive
-# Type: Google Drive
-# Suivre les instructions pour authentifier
 ```
 
 **Script de synchronisation :**
@@ -429,7 +424,7 @@ rclone sync \
 echo "Synchronisation terminée - $(date)"
 ```
 
-**Ajout au crontab (toutes les 6 heures) :**
+**Ajout au crontab :**
 
 ```bash
 0 */6 * * * /opt/scripts/sync_to_gdrive.sh >> /var/log/gdrive_sync.log 2>&1
@@ -451,7 +446,7 @@ restic restore <snapshot_id> \
 sudo -u postgres psql paperless < /opt/paperless-restore/tmp/paperless_db_backup.sql
 ```
 
----
+_______________________________________________________________________________________
 
 ## 4. Sécurité réseau
 
@@ -597,8 +592,7 @@ server {
 - Compression gzip
 - Cache des fichiers statiques
 
----
-
+________________________________________________________________________________
 
 # 5. Script
 ````
