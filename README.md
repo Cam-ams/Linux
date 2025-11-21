@@ -15,8 +15,8 @@
 - [4. Sécurité réseau](#4-sécurité-réseau)
 - [5. Lien avec les concepts théoriques](#5-lien-avec-les-concepts-théoriques)
 - [6. Conclusion](#6-conclusion)
-- [7. Script d'installartion](# 7- Script d'instalation)
----
+- [7. Script](# 7-script)
+
 
 ## 1. Introduction
 
@@ -646,7 +646,7 @@ server {
 ---
 
 
-## 7- Script d'instalation : 
+# 7. Script
 ````
 #!/bin/bash
 
