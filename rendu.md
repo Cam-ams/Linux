@@ -9,7 +9,7 @@
  **Service déployé :** Paperless-NGX
  
 Projet disponible sur GitHub : https://github.com/Cam-ams/Linux/edit/main/rendu.md
----
+
 
 ## Table des matières
 
