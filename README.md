@@ -300,8 +300,10 @@ systemctl enable --now redis-server
 
 
 documentation utilisé pour **REDIS** :
-https://restic.net/#installation
-https://blog.stephane-robert.info/docs/cloud/outils/restic/
+
+ https://restic.net/#installation
+
+ https://blog.stephane-robert.info/docs/cloud/outils/restic/
 
 ### 2.2. Création d'un utilisateur système dédié
 
