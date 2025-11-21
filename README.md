@@ -10,7 +10,7 @@ L’objectif du projet est de mettre en pratique ces notions en créant un proce
 La question principale à laquelle ce projet répond est :
  Comment installer, configurer, sécuriser et maintenir automatiquement Paperless sous Debian 13 en utilisant uniquement des scripts Linux ?
 
-Script : 
+Script d'instalation : 
 ````
 #!/bin/bash
 
