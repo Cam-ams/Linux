@@ -16,7 +16,7 @@
 - [5. Script](#5-script)
 
 
-Le rapport est accécible depuis gitHub : https://github.com/Cam-ams/Linux/blob/main/README.md
+Le rapport est accessible depuis gitHub : https://github.com/Cam-ams/Linux/blob/main/README.md
 
 ## 1. Introduction
 
