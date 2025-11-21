@@ -1,15 +1,5 @@
 # Linux
 
-Le projet Paperless utilise les connaissances apprises dans le module Linux : gestion des services, manipulation du système de fichiers, création de scripts Bash, gestion des permissions, sécurité réseau et organisation du système.
- Paperless a besoin d’un environnement bien configuré (Python, base de données, services comme Redis, outils de traitement de documents…). Le cours nous a donc appris les bases nécessaires pour :
-comprendre comment fonctionne un système Linux,
-automatiser des installations répétitives,
-sécuriser un service disponible sur le réseau,
-assurer la maintenance grâce à des sauvegardes et à l’analyse des logs.
-L’objectif du projet est de mettre en pratique ces notions en créant un processus d’installation automatique, fiable et reproductible pour installer Paperless sur Debian 13 uniquement avec des scripts Bash.
-La question principale à laquelle ce projet répond est :
- Comment installer, configurer, sécuriser et maintenir automatiquement Paperless sous Debian 13 en utilisant uniquement des scripts Linux ?
-
 Script d'instalation : 
 ````
 #!/bin/bash
@@ -196,24 +186,6 @@ echo " INSTALLATION TERMINÉE !"
 echo " Paperless est disponible sur : http://localhost:8000"
 echo "=============================================="
 ````
-## Lien avec le cours
-
-
-
-## Conclusion
-
-Ce projet nous a permis d’appliquer les notions essentielles du module Linux : gestion des services, permissions, sécurité, scripts Bash, environnement système et maintenance.
-Grâce à ces connaissances, nous avons pu créer un script complet capable d’automatiser l’installation et la configuration de Paperless sur Debian 13.
-
-Ce travail montre l’importance de l’automatisation pour faciliter les déploiements, rendre les installations plus fiables et garantir la reproductibilité des environnements.
-
-Il met aussi en évidence le rôle des bonnes pratiques d’administration système pour sécuriser et organiser un service.
-
-En résumé, ce projet nous a permis de comprendre comment combiner théorie et pratique pour installer, sécuriser et gérer un service réel de manière entièrement automatique.
-
-C’est une étape importante pour apprendre à administrer un système Linux de façon professionnelle.
-
-
 ________________________________________________________________________________________________________________________________________________________________________
 
 # Rapport Projet Paperless-NGX - Administration Linux
@@ -294,9 +266,7 @@ systemctl enable --now redis-server
 
 **Lien avec le cours :**  
 `systemd` est le gestionnaire de services de Linux. Redis fonctionne comme un **daemon** (`redis-server`), suivant la convention de nommage avec le suffixe "d".
-
 - `enable` : Configure le démarrage automatique au boot (via `/etc/systemd/system/`)
-- `--now` : Démarre immédiatement le service sans attendre le redémarrage
 
 
 documentation utilisé pour **REDIS** :
@@ -312,15 +282,9 @@ adduser --system --group --home /opt/paperless paperless || true
 ```
 
 **Lien avec le cours :**  
-Création d'un **utilisateur système**. Cet utilisateur :
-- N'a pas de shell interactif
-- N'a pas de mot de passe utilisable pour se connecter
-- Est dédié uniquement à l'exécution du service Paperless
+Création d'un **utilisateur système** dédié uniquement à l'exécution du service Paperless
 
-Si un attaquant viens a arrivé dans Paperless, il n'accédera qu'aux permissions de l'utilisateur `paperless` et ne pourra pas :
-- Accéder aux fichiers d'autres utilisateurs
-- Modifier les configurations système dans `/etc`
-- Compromettre d'autres services
+Si un attaquant viens a arrivé dans Paperless, il n'accédera qu'aux permissions de l'utilisateur `paperless` et ne pourra pas modifier les configurations système dans `/etc` et compromettre d'autres services
 
 ### 2.3. Configuration de PostgreSQL
 
@@ -575,6 +539,8 @@ curl http://localhost:8000
 
 ## 3. Backup automatisé
 
+Cette partie est fait sur la théorie du a des recherches. Rien n'as été testé.
+
 ### 3.1. Installation de Restic et Rclone
 
 ```bash
@@ -632,11 +598,9 @@ echo "Backup terminé avec succès - $(date)"
 ```
 
 **Lien avec le cours :**  
-**Scripting Bash** (cours "Rappels sur le terminal", slide 6-8) :
+**Scripting Bash** :
 - `set -e` : Arrête le script dès qu'une commande échoue (gestion des erreurs)
-- Variables : `RESTIC_REPOSITORY`, `BACKUP_SOURCE`
-- Redirection : `> /tmp/paperless_db_backup.sql` (STDOUT vers fichier)
-- Flux de texte : tout est du texte pour compatibilité maximale
+- Redirection : `> /tmp/paperless_db_backup.sql` (STDOUT)
 
 **Rendre le script exécutable :**
 
@@ -751,12 +715,10 @@ ufw enable
 ufw status verbose
 ```
 
-**🔗 Lien avec le cours :**  
-Le pare-feu filtre le trafic réseau au niveau du **kernel Linux** (cours "Fonctionnement d'un ordinateur"). UFW (Uncomplicated Firewall) est une interface simplifiée pour `iptables`, le système de filtrage de paquets du noyau.
+**Lien avec le cours :**  
+Le pare-feu filtre le trafic réseau au niveau du **kernel Linux**. UFW (Uncomplicated Firewall) est une interface simplifiée pour `iptables`, le système de filtrage de paquets du Kernel.
 
-**Principe de sécurité :** "Deny by default, allow by exception"
-- ❌ Tout est bloqué par défaut
-- ✅ Seuls les ports nécessaires sont ouverts
+**Principe de sécurité :** Seuls les ports nécessaires sont ouverts
 
 ### 4.2. Configuration de Fail2Ban
 
