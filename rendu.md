@@ -7,7 +7,6 @@
 **Service déployé :** Paperless-NGX
 **Système :** Debian 13 (Trixie)
 
-Le rapport est également sur GitHub : https://github.com/Cam-ams/Linux/blob/main/rendu.md
 
 1. [Introduction](#1-introduction)
 2. [Installation du logiciel](#2-installation-du-logiciel)
@@ -16,7 +15,8 @@ Le rapport est également sur GitHub : https://github.com/Cam-ams/Linux/blob/mai
 5. [Sécurité réseau (théorique)](#5-sécurité-réseau-théorique)
 6. [Script d'installation](#6-script-dinstallation)
 
----
+Le rapport est également sur GitHub : https://github.com/Cam-ams/Linux/blob/main/rendu.md
+
 
 ## 1. Introduction
 
