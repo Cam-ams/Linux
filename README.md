@@ -16,10 +16,7 @@ Script :
 
 set -e
 
-
 # DÉPENDANCES SYSTÈME
-
-
 apt update
 apt install -y \
   git \
@@ -40,29 +37,18 @@ apt install -y \
 
 systemctl enable --now redis-server
 
-
 #  UTILISATEUR PAPERLESS
-
-
 adduser --system --group --home /opt/paperless paperless || true
 
-
 # BASE DE DONNÉES POSTGRES
-
-
 echo -n "Entrez le mot de passe PostgreSQL pour l'utilisateur paperless : "
 read -s DB_PASS
-
 sudo -u postgres psql -tc "SELECT 1 FROM pg_roles WHERE rolname='paperless'" | grep -q 1 \
   || sudo -u postgres psql -c "CREATE USER paperless WITH PASSWORD '$DB_PASS';"
-
 sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='paperless'" | grep -q 1 \
   || sudo -u postgres psql -c "CREATE DATABASE paperless OWNER paperless;"
 
-
 #  RÉCUPÉRATION DU CODE PAPERLESS-NGX
-
-
 mkdir -p /opt/temp
 cd /opt/temp
 git clone https://github.com/paperless-ngx/paperless-ngx
@@ -71,17 +57,13 @@ chown -R paperless:paperless /opt/paperless
 
 cd /opt/paperless
 
-
 # ENVIRONNEMENT PYTHON
-
 sudo -u paperless python3 -m venv /opt/paperless/venv
 source /opt/paperless/venv/bin/activate
 
 pip install --upgrade pip wheel setuptools
 
 # INSTALLATION DES DÉPENDANCES (uv + correctifs)
-
-
 pip install uv
 
 cd /opt/paperless
@@ -99,10 +81,7 @@ pip install "uvicorn[standard]==0.30.*"
 
 deactivate
 
-
 # ARBORESCENCE PAPERLESS
-
-
 sudo -u paperless mkdir -p /opt/paperless/media
 sudo -u paperless mkdir -p /opt/paperless/data
 sudo -u paperless mkdir -p /opt/paperless/consume
@@ -111,10 +90,7 @@ sudo chown -R paperless:paperless /opt/paperless/media /opt/paperless/data /opt/
 
 sudo chmod 755 /opt/paperless/media /opt/paperless/data /opt/paperless/consume
 
-
 # FICHIER .ENV
-
-
 SECRET_KEY=$(/opt/paperless/venv/bin/python <<'EOF'
 from django.core.management.utils import get_random_secret_key
 print(get_random_secret_key())
@@ -139,19 +115,13 @@ EOF
 chmod 600 /opt/paperless/.env
 chown paperless:paperless /opt/paperless/.env
 
-
 # CONF
-
-
 cd /opt/paperless/
 cp paperless.conf.example paperless.conf
 
 sed -i -e '5,12s/^#//' -e '16,17s/^#//' -e '19,20s/^#//' -e "s/^PAPERLESS_DBPASS=.*/PAPERLESS_DBPASS=$DB_PASS/" paperless.conf
 
-
 # MIGRATIONS DJANGO + ADMIN
-
-
 source /opt/paperless/venv/bin/activate
 cd /opt/paperless/src
 
@@ -163,10 +133,7 @@ sudo -u paperless /opt/paperless/venv/bin/python manage.py createsuperuser
 
 deactivate
 
-
 #  Vérification et Migrations
-
-
 echo "=== APPLICATION DES MIGRATIONS DJANGO ==="
 source /opt/paperless/venv/bin/activate
 cd /opt/paperless/src
@@ -179,11 +146,7 @@ sudo -u paperless /opt/paperless/venv/bin/python manage.py showmigrations
 
 deactivate
 
-
-
 # SYSTEMD : SERVEUR WEB
-
-
 cat <<EOF > /etc/systemd/system/paperless-web.service
 [Unit]
 Description=Paperless-NGX Web Server
@@ -222,10 +185,7 @@ Restart=always
 WantedBy=multi-user.target
 EOF
 
-
 # ACTIVATION DES SERVICES
-
-
 systemctl daemon-reload
 systemctl enable --now paperless-web.service
 systemctl enable --now paperless-consumer.service
@@ -236,8 +196,11 @@ echo " INSTALLATION TERMINÉE !"
 echo " Paperless est disponible sur : http://localhost:8000"
 echo "=============================================="
 ````
+## Lien avec le cours
 
-# Conclusion
+
+## Conclusion
+
 Ce projet nous a permis d’appliquer les notions essentielles du module Linux : gestion des services, permissions, sécurité, scripts Bash, environnement système et maintenance.
 Grâce à ces connaissances, nous avons pu créer un script complet capable d’automatiser l’installation et la configuration de Paperless sur Debian 13.
 Ce travail montre l’importance de l’automatisation pour faciliter les déploiements, rendre les installations plus fiables et garantir la reproductibilité des environnements.
