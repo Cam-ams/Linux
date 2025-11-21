@@ -384,120 +384,181 @@ restic forget --repo "$RESTIC_REPOSITORY" \
 
 ```bash
 
-#!/usr/bin/env bash
-set -e
 
-apt update
-apt install -y \
-    python3 \
-    python3-venv \
-    python3-pip \
-    python3-dev \
-    build-essential \
-    git \
-    libmagic1 \
-    tesseract-ocr \
-    tesseract-ocr-eng \
-    imagemagick \
-    unpaper \
-    poppler-utils \
-    libxml2-dev \
-    libxslt1-dev \
-    libpq-dev \
-    zlib1g-dev \
-    libjpeg-dev \
-    liblcms2-dev \
-    libtiff-dev \
-    libffi-dev \
-    libcairo2-dev \
-    libpango1.0-dev \
-    libglib2.0-dev \
-    libgirepository1.0-dev \
-    gir1.2-pango-1.0
+# CONFIGURATION
+
+
+PAPERLESS_USER=paperless
+PAPERLESS_HOME=/opt/paperless
+VENV_DIR=$PAPERLESS_HOME/venv
+DB_NAME=paperless
+DB_USER=paperless
+PAPERLESS_URL="http://127.0.0.1:8000"
+TIMEZONE="Europe/Paris"
+CONSUME_DIR="$PAPERLESS_HOME/consume"
+DATA_DIR="$PAPERLESS_HOME/data"
+MEDIA_DIR="$PAPERLESS_HOME/media"
+STATIC_DIR="$PAPERLESS_HOME/static"
+WORKDIR="$PAPERLESS_HOME/src"
+
+
+# INSTALLATION DES DEPENDANCES
 
 
 apt update
-apt install -y postgresql postgresql-contrib
+apt install -y git curl wget ca-certificates gnupg python3 python3-venv python3-dev python3-pip build-essential libpq-dev redis-server postgresql postgresql-contrib tesseract-ocr qpdf poppler-utils imagemagick libmagic-dev libzbar0 pkg-config fonts-liberation npm
 
-# Start PostgreSQL service
-systemctl enable --now postgresql
+systemctl enable --now redis-server
 
-# Create database and user for Paperless
-sudo -u postgres psql <<EOF
-CREATE DATABASE paperless;
-CREATE USER paperless WITH ENCRYPTED PASSWORD 'YourSecurePasswordHere';
-GRANT ALL PRIVILEGES ON DATABASE paperless TO paperless;
+
+# UTILISATEUR PAPERLESS
+
+
+adduser --system --group --home "$PAPERLESS_HOME" --shell /bin/bash "$PAPERLESS_USER"
+
+mkdir -p "$PAPERLESS_HOME"
+chown -R "$PAPERLESS_USER:$PAPERLESS_USER" "$PAPERLESS_HOME"
+
+
+# POSTGRESQL
+
+
+read -rsp "Entrez le mot de passe PostgreSQL pour l'utilisateur $DB_USER : " DB_PASS
+echo
+
+sudo -u postgres psql -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASS';"
+sudo -u postgres psql -c "CREATE DATABASE $DB_NAME OWNER $DB_USER;"
+
+
+# CLONER LE REPO
+
+sudo -u "$PAPERLESS_USER" mkdir -p /opt/temp
+sudo -u "$PAPERLESS_USER" cd /opt/temp
+sudo -u "$PAPERLESS_USER" git clone https://github.com/paperless-ngx/paperless-ngx
+sudo -u "$PAPERLESS_USER" cp -a paperless-ngx/. /opt/paperless/
+sudo -u "$PAPERLESS_USER" chown -R paperless:paperless /opt/paperless
+
+# VIRTUALENV
+
+
+sudo -u "$PAPERLESS_USER" python3 -m venv "$VENV_DIR"
+sudo -u "$PAPERLESS_USER" "$VENV_DIR/bin/pip" install --upgrade pip setuptools wheel
+sudo -u "$PAPERLESS_USER" "$VENV_DIR/bin/pip" install django redis gunicorn psycopg2-binary django-allauth concurrent-log-handler==0.9.25
+
+
+# ARBORESCENCE ET PERMISSIONS
+
+
+mkdir -p "$CONSUME_DIR" "$DATA_DIR" "$MEDIA_DIR" "$STATIC_DIR"
+chown -R "$PAPERLESS_USER:$PAPERLESS_USER" "$PAPERLESS_HOME" "$CONSUME_DIR" "$DATA_DIR" "$MEDIA_DIR" "$STATIC_DIR"
+chmod 750 "$CONSUME_DIR" "$DATA_DIR" "$MEDIA_DIR"
+
+
+# CREATION DU .ENV
+
+
+SECRET_KEY=$(sudo -u "$PAPERLESS_USER" "$VENV_DIR/bin/python" -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())")
+
+cat > "$PAPERLESS_HOME/.env" <<EOF
+SECRET_KEY=$SECRET_KEY
+PAPERLESS_REDIS=redis://localhost:6379
+PAPERLESS_DBHOST=localhost
+PAPERLESS_DBNAME=$DB_NAME
+PAPERLESS_DBUSER=$DB_USER
+PAPERLESS_DBPASS=$DB_PASS
+PAPERLESS_TIME_ZONE=$TIMEZONE
+PAPERLESS_CONSUMPTION_DIR=$CONSUME_DIR
+PAPERLESS_DATA_DIR=$DATA_DIR
+PAPERLESS_MEDIA_ROOT=$MEDIA_DIR
+PAPERLESS_STATICDIR=$STATIC_DIR
+PAPERLESS_URL=$PAPERLESS_URL
 EOF
 
+chmod 600 "$PAPERLESS_HOME/.env"
+chown "$PAPERLESS_USER:$PAPERLESS_USER" "$PAPERLESS_HOME/.env"
 
 
-
-if ! id "paperless" >/dev/null 2>&1; then
-    adduser --system --group --home /var/lib/paperless paperless
-fi
-
-mkdir -p /opt/paperless
-chown paperless:paperless /opt/paperless
+# FRONT-END BUILD
 
 
-sudo -u paperless git clone https://github.com/paperless-ngx/paperless-ngx.git /opt/paperless/paperless-ngx
+UI_DIR="$PAPERLESS_HOME/src"
 
-sudo -u paperless python3 -m venv /opt/paperless/venv
-source /opt/paperless/venv/bin/activate
+cd "$UI_DIR"
+chown -R "$PAPERLESS_USER:$PAPERLESS_USER" "$UI_DIR"
 
-pip install -U pip wheel setuptools
+sudo -u "$PAPERLESS_USER" npm install --no-audit --no-fund
+sudo -u "$PAPERLESS_USER" npm run build || echo "Frontend build échoué"
 
-cd /opt/paperless/paperless-ngx
-sudo -u paperless /opt/paperless/venv/bin/pip install --upgrade pip wheel setuptools
+BUILD_DIR="$UI_DIR/dist"
+rm -rf "$STATIC_DIR"/*
+cp -a "$BUILD_DIR"/. "$STATIC_DIR"/
+chown -R "$PAPERLESS_USER:$PAPERLESS_USER" "$STATIC_DIR"
 
-# Install dependencies directly from pyproject.toml
-sudo -u paperless /opt/paperless/venv/bin/pip install .
 
-mkdir -p \
-    /var/lib/paperless/media \
-    /var/lib/paperless/data \
-    /var/lib/paperless/consume
+# MIGRATIONS & COLLECTSTATIC
 
-chown -R paperless:paperless /var/lib/paperless
 
-cat >/etc/systemd/system/paperless.service <<'EOF'
+cd "$WORKDIR"
+chown -R "$PAPERLESS_USER:$PAPERLESS_USER" "$WORKDIR"
+
+sudo -u "$PAPERLESS_USER" "$VENV_DIR/bin/python" manage.py migrate --noinput
+sudo -u "$PAPERLESS_USER" "$VENV_DIR/bin/python" manage.py collectstatic --noinput
+
+
+# SERVICES SYSTEMD
+
+
+cat > /etc/systemd/system/paperless-web.service <<EOF
 [Unit]
-Description=Paperless-NGX Document Management
-After=network.target redis.service postgresql.service
+Description=Paperless-NGX Web Server (gunicorn)
+After=network.target redis-server.service postgresql.service
+Wants=redis-server.service postgresql.service
 
 [Service]
-Type=simple
-User=paperless
-Group=paperless
-Environment="PAPERLESS_REDIS=redis://localhost:6379"
-Environment="PAPERLESS_DBHOST=localhost"
-Environment="PAPERLESS_DBPORT=5432"
-Environment="PAPERLESS_DBNAME=paperless"
-Environment="PAPERLESS_DBUSER=paperless"
-Environment="PAPERLESS_DBPASS=YourSecurePasswordHere"
-Environment="PAPERLESS_BIND=0.0.0.0:8000"
-WorkingDirectory=/opt/paperless/paperless-ngx/src
-ExecStart=/opt/paperless/venv/bin/python3 manage.py runserver 0.0.0.0:8000
+User=$PAPERLESS_USER
+Group=$PAPERLESS_USER
+EnvironmentFile=$PAPERLESS_HOME/.env
+WorkingDirectory=$WORKDIR
+ExecStart=$VENV_DIR/bin/gunicorn --bind 0.0.0.0:8000 paperless.wsgi:application
 Restart=on-failure
+LimitNOFILE=4096
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
-# Reload systemd and start service
-systemctl daemon-reload
-systemctl enable --now paperless
-systemctl status paperless
+cat > /etc/systemd/system/paperless-consumer.service <<EOF
+[Unit]
+Description=Paperless-NGX Document Consumer
+After=network.target redis-server.service postgresql.service
+
+[Service]
+User=$PAPERLESS_USER
+Group=$PAPERLESS_USER
+EnvironmentFile=$PAPERLESS_HOME/.env
+WorkingDirectory=$WORKDIR
+ExecStart=$VENV_DIR/bin/python manage.py document_consumer
+Restart=on-failure
+LimitNOFILE=4096
+
+[Install]
+WantedBy=multi-user.target
+EOF
 
 systemctl daemon-reload
-systemctl enable --now paperless
+systemctl enable --now paperless-web.service
+systemctl enable --now paperless-consumer.service
 
 
-echo "Paperless-NGX installed successfully!"
-echo "Accessible at: http://localhost:8000"
-echo "Default user creation:"
-echo "  source /opt/paperless/venv/bin/activate && paperless createsuperuser"
+# VERIFICATIONS
 
+
+sleep 2
+ss -tulpn | grep 8000 || echo "Port 8000 libre"
+systemctl status paperless-web --no-pager
+systemctl status paperless-consumer --no-pager
+
+echo "Installation terminée"
 
 
 ```
