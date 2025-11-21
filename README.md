@@ -235,7 +235,7 @@ echo "=============================================="
 echo " INSTALLATION TERMINÉE !"
 echo " Paperless est disponible sur : http://localhost:8000"
 echo "=============================================="
-```
+````
 
 # Conclusion
 Ce projet nous a permis d’appliquer les notions essentielles du module Linux : gestion des services, permissions, sécurité, scripts Bash, environnement système et maintenance.
