@@ -296,7 +296,8 @@ curl http://localhost:8000
 ```
 
 **Accès à l'interface web :**  
-`http://localhost:8000`
+
+` http://localhost:8000 `
 ---
 
 ## 3. Backup automatisé
