@@ -236,17 +236,6 @@ Restart=always
 WantedBy=multi-user.target
 ```
 
-**Lien avec le cours :**  
-Ce fichier `.service` configure un **daemon systemd** :
-
-| Directive | Signification |
-|-----------|--------------|
-| `After=` | Dépendances : attend réseau, Redis, PostgreSQL |
-| `User=` | Exécution avec l'utilisateur système dédié |
-| `EnvironmentFile=` | Charge les variables depuis `.env` |
-| `Restart=always` | Redémarrage automatique en cas de crash |
-| `WantedBy=multi-user.target` | Activation au démarrage du système |
-
 #### 2.10.2. Service Consumer (paperless-consumer.service)
 
 ```ini
@@ -385,11 +374,8 @@ crontab -e
 
 **Format Cron :**
 ```
-## * - - - - minute 
+
 ## - * - - - heure (0 - 23)
-## - - * - - jour du mois 
-## - - - * - mois 
-## - - - - * jour de la semaine 
 
 * 2 * * * /opt/scripts/backup_paperless.sh
 ```
