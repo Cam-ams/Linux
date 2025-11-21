@@ -1,6 +1,4 @@
-Parfait ! Voici une version complète et structurée de **ton rapport de projet Paperless-NGX**, avec toutes les explications, commandes, scripts et analyses. J’ai mis tout en forme pour qu’il soit clair, lisible et prêt à être remis comme **rapport technique**.
 
----
 
 # Rapport Projet Paperless-NGX – Administration Linux
 
@@ -9,9 +7,7 @@ Parfait ! Voici une version complète et structurée de **ton rapport de projet 
 **Service déployé :** Paperless-NGX
 **Système :** Debian 13 (Trixie)
 
----
-
-## Table des matières
+Le rapport est également sur GitHub : https://github.com/Cam-ams/Linux/blob/main/rendu.md
 
 1. [Introduction](#1-introduction)
 2. [Installation du logiciel](#2-installation-du-logiciel)
@@ -24,21 +20,16 @@ Parfait ! Voici une version complète et structurée de **ton rapport de projet 
 
 ## 1. Introduction
 
-### 1.1 Problématique
+### Problématique
 
 Comment installer, configurer, sécuriser et maintenir automatiquement Paperless-NGX sous Debian 13 en utilisant uniquement des scripts Bash, tout en assurant la sauvegarde des données et la sécurité du système ?
 
-### 1.2 Composants principaux
+###  Composants principaux
 
 * **Python 3** : Langage de programmation principal
-* **PostgreSQL** : Base de données relationnelle
-* **Redis** : Cache en mémoire et gestionnaire de queues
-* **Tesseract OCR** : Reconnaissance optique de caractères
-* **Gunicorn + Uvicorn** : Serveurs web ASGI pour Django
-* **Systemd** : Gestion des services et démarrage automatique
-* **Node.js / npm** : Build du frontend
+nd
 
-### 1.3 Lien avec le cours
+### Lien avec le cours
 
 Ce projet mobilise l'ensemble des concepts d'administration Linux vus en cours :
 
@@ -52,9 +43,9 @@ Ce projet mobilise l'ensemble des concepts d'administration Linux vus en cours :
 
 ## 2. Installation du logiciel
 
-### 2.1 Préparation du système
+### Préparation du système
 
-#### 2.1.1 Mise à jour
+####  Mise à jour
 
 ```bash
 apt update && apt upgrade -y
@@ -63,7 +54,7 @@ apt update && apt upgrade -y
 **Explication :**
 `apt` est le gestionnaire de paquets de Debian. Le flag `-y` automatise la confirmation, utile dans les scripts non-interactifs.
 
-#### 2.1.2 Installation des dépendances système
+####  Installation des dépendances système
 
 ```bash
 apt install -y python3 python3-pip python3-dev \
@@ -85,7 +76,7 @@ redis postgresql nodejs npm git
 
 ---
 
-### 2.2 Configuration de Redis
+###  Configuration de Redis
 
 ```bash
 systemctl enable redis-server --now
@@ -93,13 +84,13 @@ systemctl enable redis-server --now
 
 **Explication :**
 
-* Redis est un daemon (`-server`).
-* `systemd` gère le service, ses dépendances et le redémarrage automatique.
-* `enable --now` : active le service au boot et le démarre immédiatement.
+Redis est un daemon (`-server`).
+`systemd` gère le service, ses dépendances et le redémarrage automatique.
+ `enable --now` : active le service au boot et le démarre immédiatement.
 
 ---
 
-### 2.3 Configuration de PostgreSQL
+###  Configuration de PostgreSQL
 
 ```bash
 apt install -y postgresql
@@ -130,7 +121,7 @@ passwd paperless
 
 ---
 
-### 2.5 Récupération du code source
+###  Récupération du code source
 
 ```bash
 mkdir -p /opt/paperless
@@ -145,7 +136,7 @@ sudo -u paperless git clone https://github.com/paperless-ngx/paperless-ngx /opt/
 
 ---
 
-### 2.6 Build du frontend
+### Build du frontend
 
 ```bash
 cd /opt/paperless/paperless-ngx
@@ -159,8 +150,7 @@ sudo -u paperless npm run build
 * Génère les fichiers statiques nécessaires au navigateur.
 
 ---
-
-### 2.7 Configuration de l’arborescence
+###  Configuration de l’arborescence
 
 ```bash
 mkdir -p /opt/paperless/media /opt/paperless/data /opt/paperless/consume
@@ -176,7 +166,7 @@ chown -R paperless:paperless /opt/paperless/consume
 
 ---
 
-### 2.8 Installation des dépendances Python
+###  Installation des dépendances Python
 
 ```bash
 sudo -Hu paperless pip3 install --upgrade pip setuptools wheel
@@ -190,7 +180,7 @@ sudo -Hu paperless pip3 install /opt/paperless/paperless-ngx --break-system-pack
 
 ---
 
-### 2.9 Initialisation de la base de données
+### Initialisation de la base de données
 
 ```bash
 sudo -Hu paperless python3 /opt/paperless/paperless-ngx/src/manage.py migrate
@@ -202,9 +192,9 @@ sudo -Hu paperless python3 /opt/paperless/paperless-ngx/src/manage.py migrate
 
 ---
 
-### 2.10 Configuration des services systemd
+### Configuration des services systemd
 
-#### 2.10.1 Service Document Consumer
+####  Service Document Consumer
 
 ```ini
 [Unit]
@@ -227,11 +217,11 @@ WantedBy=multi-user.target
 * Services dépendants de Redis.
 * Isolation via l’utilisateur `paperless`.
 
-#### 2.10.2 Service Celery Beat (Scheduler)
+#### Service Celery Beat 
 
 ```ini
 [Unit]
-Description=Paperless Celery Beat (scheduler)
+Description=Paperless Celery Beat 
 Requires=redis-server.service
 After=redis-server.service
 
@@ -245,7 +235,7 @@ ExecStart=/opt/paperless/.local/bin/celery --app paperless beat --loglevel INFO
 WantedBy=multi-user.target
 ```
 
-#### 2.10.3 Service Celery Workers
+####  Service Celery Workers
 
 ```ini
 [Unit]
@@ -263,11 +253,11 @@ ExecStart=/opt/paperless/.local/bin/celery --app paperless worker --loglevel INF
 WantedBy=multi-user.target
 ```
 
-#### 2.10.4 Service Gunicorn (Web Server)
+#### Service Gunicorn
 
 ```ini
 [Unit]
-Description=Paperless webserver (Gunicorn)
+Description=Paperless webserver 
 After=network.target
 Requires=redis-server.service
 
@@ -283,7 +273,7 @@ WantedBy=multi-user.target
 
 ---
 
-### 2.11 Activation des services
+### Activation des services
 
 ```bash
 systemctl daemon-reload
@@ -299,7 +289,7 @@ systemctl enable --now paperless-webserver.service
 
 ---
 
-### 2.12 Vérification de l’installation
+###  Vérification de l’installation
 
 ```bash
 systemctl status paperless-*.service
@@ -311,20 +301,20 @@ curl http://localhost:8000
 
 ## 3. Analyse des erreurs rencontrées
 
-### 3.1 Problème principal : "Something might be wrong"
+###  Problème principal : "Something might be wrong"
 
 * La page de login s’affiche mais l’API échoue.
 * `curl -I http://127.0.0.1:8000/api/` ne répond pas.
 * Gunicorn semble actif.
 
-### 3.2 Causes probables
+### Causes probables
 
 1. Frontend non construit correctement
 2. Permissions incorrectes
 3. Mauvaise configuration Django (`STATIC_URL`, `ALLOWED_HOSTS`)
 4. API backend inaccessible
 
-### 3.3 Vérification des permissions
+###  Vérification des permissions
 
 ```bash
 ls -l /opt/paperless/paperless-ngx/src/documents/static/
@@ -336,14 +326,14 @@ chown -R paperless:paperless /opt/paperless/paperless-ngx/
 
 ## 4. Backup automatisé (théorique)
 
-### 4.1 Installation de Restic et Rclone
+###  Installation de Restic et Rclone
 
 ```bash
 apt update
 apt install -y restic rclone
 ```
 
-### 4.2 Script de backup Restic
+###  Script de backup Restic
 
 ```bash
 #!/bin/bash
@@ -374,7 +364,7 @@ restic forget --repo "$RESTIC_REPOSITORY" \
     --keep-daily 7 --keep-weekly 4 --keep-monthly 6 --prune
 ```
 
-### 4.3 Cron pour automatisation
+### Cron pour automatisation
 
 ```bash
 0 2 * * * /opt/scripts/backup_paperless.sh >> /var/log/paperless_backup.log 2>&1
@@ -393,48 +383,105 @@ restic forget --repo "$RESTIC_REPOSITORY" \
 ## 6. Script d'installation complet
 
 ```bash
-#!/bin/bash
+#!/usr/bin/env bash
 set -e
 
-# Mise à jour
-apt update && apt upgrade -y
+apt update
+apt install -y \
+    python3 \
+    python3-venv \
+    python3-pip \
+    python3-dev \
+    build-essential \
+    git \
+    libmagic1 \
+    tesseract-ocr \
+    tesseract-ocr-eng \
+    imagemagick \
+    unpaper \
+    poppler-utils \
+    libxml2-dev \
+    libxslt1-dev \
+    libpq-dev \
+    zlib1g-dev \
+    libjpeg-dev \
+    liblcms2-dev \
+    libtiff-dev \
+    libffi-dev \
+    libcairo2-dev \
+    libpango1.0-dev \
+    libglib2.0-dev \
+    libgirepository1.0-dev \
+    gir1.2-pango-1.0
 
-# Dépendances
-apt install -y python3 python3-pip python3-dev imagemagick fonts-liberation \
-libpq-dev default-libmysqlclient-dev pkg-config libmagic-dev mime-support \
-poppler-utils unpaper ghostscript icc-profiles-free qpdf liblept5 \
-libxml2 pngquant zlib1g tesseract-ocr tesseract-ocr-deu tesseract-ocr-eng \
-lsb-release curl gpg software-properties-common apt-transport-https \
-ca-certificates redis postgresql nodejs npm git
+if ! id "paperless" >/dev/null 2>&1; then
+    adduser --system --group --home /var/lib/paperless paperless
+fi
 
-# PostgreSQL
-sudo -u postgres psql -c "CREATE DATABASE paperless;"
-sudo -u postgres psql -c "CREATE USER paperless WITH ENCRYPTED PASSWORD 'paperless123';"
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE paperless TO paperless;"
+mkdir -p /opt/paperless
+chown paperless:paperless /opt/paperless
 
-# Utilisateur système
-adduser --system --home /opt/paperless --shell /bin/bash --group paperless
 
-# Dépôt Paperless
-sudo -u paperless git clone https://github.com/paperless-ngx/paperless-ngx /opt/paperless/paperless-ngx
+sudo -u paperless git clone https://github.com/paperless-ngx/paperless-ngx.git /opt/paperless/paperless-ngx
 
-# Frontend
+sudo -u paperless python3 -m venv /opt/paperless/venv
+source /opt/paperless/venv/bin/activate
+
+pip install -U pip wheel setuptools
+
 cd /opt/paperless/paperless-ngx
-sudo -u paperless npm install
-sudo -u paperless npm run build
+sudo -u paperless /opt/paperless/venv/bin/pip install --upgrade pip wheel setuptools
 
-# Backend
-sudo -Hu paperless pip3 install --upgrade pip setuptools wheel
-sudo -Hu paperless pip3 install /opt/paperless/paperless-ngx --break-system-packages
-sudo -Hu paperless python3 /opt/paperless/paperless-ngx/src/manage.py migrate
+# Install dependencies directly from pyproject.toml
+sudo -u paperless /opt/paperless/venv/bin/pip install .
 
-echo "Installation terminée."
+mkdir -p \
+    /var/lib/paperless/media \
+    /var/lib/paperless/data \
+    /var/lib/paperless/consume
+
+chown -R paperless:paperless /var/lib/paperless
+
+cat >/etc/systemd/system/paperless.service <<'EOF'
+[Unit]
+Description=Paperless-NGX Document Management
+After=network.target redis.service postgresql.service
+
+[Service]
+Type=simple
+User=paperless
+Group=paperless
+Environment="PAPERLESS_REDIS=redis://localhost:6379"
+Environment="PAPERLESS_DBHOST=localhost"
+Environment="PAPERLESS_DBPORT=5432"
+Environment="PAPERLESS_DBNAME=paperless"
+Environment="PAPERLESS_DBUSER=paperless"
+Environment="PAPERLESS_DBPASS=YourSecurePasswordHere"
+Environment="PAPERLESS_BIND=0.0.0.0:8000"
+WorkingDirectory=/opt/paperless/paperless-ngx/src
+ExecStart=/opt/paperless/venv/bin/python3 manage.py runserver 0.0.0.0:8000
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Reload systemd and start service
+systemctl daemon-reload
+systemctl enable --now paperless
+systemctl status paperless
+
+
+
+systemctl daemon-reload
+systemctl enable --now paperless
+
+echo "Paperless-NGX installed successfully!"
+echo "Accessible at: http://localhost:8000"
+echo "Default user creation:"
+echo "  source /opt/paperless/venv/bin/activate && paperless createsuperuser"
+
+
 ```
 
----
 
-Ce rapport contient **toutes tes explications, commandes, scripts, et configurations**.
-
-Si tu veux, je peux te faire **une version PDF prête à rendre** avec une **table des matières automatique** et mise en page professionnelle.
-
-Veux‑tu que je fasse ça ?
