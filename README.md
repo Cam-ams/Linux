@@ -22,7 +22,7 @@ Le rapport est accessible depuis gitHub : https://github.com/Cam-ams/Linux/blob/
 
 ### 1.1. Problématique
 
-> **Comment installer, configurer, sécuriser et maintenir automatiquement Paperless-NGX sous Debian 13 en utilisant uniquement des scripts Bash, tout en assurant l la sauvegarde des données et le monitoring du système ?**
+> **Comment installer, configurer, sécuriser et maintenir automatiquement Paperless-NGX sous Debian 13 en utilisant uniquement des scripts Bash, tout en assurant la sauvegarde des données et le sécurité du système ?**
 
 **Composants principaux :**
 - **Python 3** 
