@@ -157,14 +157,6 @@ sudo chmod 755 /opt/paperless/media /opt/paperless/data /opt/paperless/consume
 - `data/` : Base de données
 - `consume/` : Dossier surveillé pour l'ajout automatique de documents
 
-**Pérmissions** 
-
-| User | Group | Other |
-|-------------|--------|--------|
-| `rwx` (7)   | `r-x` (5) | `r-x` (5) |
-| Lecture, écriture, exécution | Lecture, exécution | Lecture, exécution |
-
-
 ### 2.8. Configuration de l'environnement (.env)
 
 ```bash
