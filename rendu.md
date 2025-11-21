@@ -3,8 +3,11 @@
 # Rapport Projet Paperless-NGX – Administration Linux
 
 **Auteurs :** MENOURY Ethan & Djenid Camélia
+
 **Date :** 21 Novembre 2025
+
 **Service déployé :** Paperless-NGX
+
 **Système :** Debian 13 (Trixie)
 
 
