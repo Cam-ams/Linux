@@ -20,7 +20,7 @@
 
 ### 1.1. Problématique
 
-> **Comment installer, configurer, sécuriser et maintenir automatiquement Paperless-NGX sous Debian 13 en utilisant uniquement des scripts Bash, tout en assurant la haute disponibilité, la sauvegarde des données et le monitoring du système ?**
+> **Comment installer, configurer, sécuriser et maintenir automatiquement Paperless-NGX sous Debian 13 en utilisant uniquement des scripts Bash, tout en assurant l la sauvegarde des données et le monitoring du système ?**
 
 **Composants principaux :**
 - **Python 3** 
@@ -78,9 +78,7 @@ systemctl enable --now redis-server
 
 documentation utilisé pour **REDIS** :
 
- https://restic.net/#installation
 
- https://blog.stephane-robert.info/docs/cloud/outils/restic/
 
 ### 2.2. Création d'un utilisateur système dédié
 
@@ -90,8 +88,7 @@ adduser --system --group --home /opt/paperless paperless || true
 
 **Lien avec le cours :**  
 Création d'un **utilisateur système** dédié uniquement à l'exécution du service Paperless
-
-Si un attaquant viens a arrivé dans Paperless, il n'accédera qu'aux permissions de l'utilisateur `paperless` et ne pourra pas modifier les configurations système dans `/etc` et compromettre d'autres services
+Si un attaquant viens a arrivé dans Paperless, il n'accédera qu'aux permissions de l'utilisateur `paperless`, ne pourra pas modifier les configurations système dans `/etc` et compromettre d'autres services
 
 ### 2.3. Configuration de PostgreSQL
 
@@ -106,11 +103,7 @@ sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='paperless'" 
   || sudo -u postgres psql -c "CREATE DATABASE paperless OWNER paperless;"
 ```
 
-**Lien avec le cours :**  
-- **Gestion des utilisateurs** : PostgreSQL possède son propre utilisateur système `postgres`
-- **sudo -u postgres** : Exécute les commandes avec les privilèges de l'utilisateur `postgres`, illustrant la commutation d'identité
-- **Idempotence** : Les vérifications avec `grep -q` permettent de relancer le script sans erreur
-- **Sécurité** : `read -s` masque le mot de passe lors de la saisie (pas d'affichage, pas d'enregistrement dans l'historique bash)
+ `read -s` masque le mot de passe lors de la saisie (pas d'affichage et pas d'enregistrement dans l'historique bash)
 
 ### 2.4. Récupération du code source
 
@@ -122,12 +115,6 @@ cp -a paperless-ngx/. /opt/paperless/
 chown -R paperless:paperless /opt/paperless
 ```
 
-**Lien avec le cours :**  
-**Gestion des permissions** (cours "Administration Linux", slide 9) :
-- `chown -R` : Modifie récursivement le propriétaire ET le groupe
-- Format `utilisateur:groupe` : Définit simultanément les deux attributs
-- Garantit que seul l'utilisateur `paperless` contrôle les fichiers de l'application
-
 ### 2.5. Environnement virtuel Python
 
 ```bash
@@ -137,12 +124,8 @@ pip install --upgrade pip wheel setuptools
 ```
 
 **Lien avec le cours :**  
-L'environnement virtuel Python (`venv`) crée un espace **isolé** pour les dépendances Python, évitant les conflits avec les paquets système. C'est l'équivalent Python du concept de **bibliothèques partagées**, mais avec une isolation par projet.
-
-**Avantages :**
-- Versions de bibliothèques spécifiques au projet
-- Pas de pollution du système global
-- Reproductibilité entre environnements
+`venv` est un environnement virtuel Python qui crée un espace **isolé** pour les dépendances Python, ce qui évite les conflits avec les paquets système.
+`source /opt/paperless/venv/bin/activate` source : Timothée CERCUEIL
 
 L'utilisation de `sudo -u paperless` garantit que l'environnement appartient à l'utilisateur `paperless` et non à `root`.
 
@@ -155,12 +138,6 @@ pip install concurrent-log-handler==0.9.25
 pip install --upgrade django-allauth
 pip install psycopg2 "gunicorn==22.*" "uvicorn[standard]==0.30.*"
 ```
-
-**Dépendances clés :**
-- `uv` : Installeur de paquets Python ultra-rapide (écrit en Rust)
-- `psycopg2` : Adaptateur PostgreSQL pour Python
-- `gunicorn` : Serveur WSGI/ASGI production-ready
-- `uvicorn` : Serveur ASGI asynchrone (pour WebSockets et HTTP/2)
 
 ### 2.7. Configuration de l'arborescence
 
@@ -175,21 +152,16 @@ sudo chmod 755 /opt/paperless/media /opt/paperless/data /opt/paperless/consume
 
 **Structure des dossiers :**
 - `media/` : Stockage des documents PDF originaux et miniatures
-- `data/` : Base de données SQLite (non utilisée avec PostgreSQL) et index de recherche
+- `data/` : Base de données
 - `consume/` : Dossier surveillé pour l'ajout automatique de documents
 
-**Lien avec le cours :**  
-Les **permissions 755** (cours "Administration Linux", slide 10) signifient :
+**Pérmissions** 
 
-| Utilisateur | Groupe | Autres |
+| User | Group | Other |
 |-------------|--------|--------|
 | `rwx` (7)   | `r-x` (5) | `r-x` (5) |
 | Lecture, écriture, exécution | Lecture, exécution | Lecture, exécution |
 
-**En octal :**
-- **7** = 4 (read) + 2 (write) + 1 (execute)
-- **5** = 4 (read) + 1 (execute)
-- **5** = 4 (read) + 1 (execute)
 
 ### 2.8. Configuration de l'environnement (.env)
 
@@ -217,19 +189,6 @@ EOF
 
 chmod 600 /opt/paperless/.env
 chown paperless:paperless /opt/paperless/.env
-```
-
-**Lien avec le cours :**  
-**Variables d'environnement** (cours "Rappels sur le terminal", slide 6) :
-- Le fichier `.env` contient des variables sensibles chargées au démarrage
-- `chmod 600` : `rw-------` garantit que SEUL le propriétaire peut lire/écrire
-- Protection des secrets : mot de passe DB, clé de chiffrement Django
-
-**Structure des permissions 600 :**
-```
-6 = rw- (lecture + écriture pour le propriétaire)
-0 = --- (aucun accès pour le groupe)
-0 = --- (aucun accès pour les autres)
 ```
 
 ### 2.9. Migrations Django et collecte des fichiers statiques
@@ -275,8 +234,8 @@ Restart=always
 WantedBy=multi-user.target
 ```
 
-**🔗 Lien avec le cours :**  
-Ce fichier `.service` configure un **daemon systemd** (cours "Le système d'exploitation", slide 3) :
+**Lien avec le cours :**  
+Ce fichier `.service` configure un **daemon systemd** :
 
 | Directive | Signification |
 |-----------|--------------|
@@ -303,9 +262,9 @@ Restart=always
 WantedBy=multi-user.target
 ```
 
-Le **consumer** surveille le dossier `consume/` et traite automatiquement les nouveaux documents :
-1. Détection de nouveaux fichiers (inotify)
-2. Extraction du texte via OCR (Tesseract)
+Le **consumer** surveille le dossier `consume/` et traite les nouveaux documents :
+1. Détection de nouveaux fichiers -> inotify
+2. Extraction du texte via OCR -> Tesseract
 3. Indexation dans PostgreSQL
 4. Génération de miniatures
 5. Déplacement dans `media/`
@@ -318,10 +277,7 @@ systemctl enable --now paperless-web.service
 systemctl enable --now paperless-consumer.service
 ```
 
-**Lien avec le cours :**  
 - `daemon-reload` : Recharge la configuration systemd après ajout de fichiers `.service`
-- `enable` : Crée un lien symbolique dans `/etc/systemd/system/multi-user.target.wants/`
-- Vérification : `systemctl status paperless-web.service`
 
 ### 2.11. Validation de l'installation
 
@@ -340,13 +296,15 @@ curl http://localhost:8000
 ```
 
 **Accès à l'interface web :**  
-`http://localhost:8000` (ou `http://<IP_SERVEUR>:8000`)
-
+`http://localhost:8000`
 ---
 
 ## 3. Backup automatisé
 
-Cette partie est fait sur la théorie du a des recherches. Rien n'as été testé.
+**Cette partie est fait sur la théorie du a des recherches. Rien n'as été testé.**
+
+La documentation utilisé est principalement : 
+ https://blog.stephane-robert.info/docs/cloud/outils/restic/
 
 ### 3.1. Installation de Restic et Rclone
 
@@ -367,18 +325,16 @@ RESTIC_REPOSITORY="/opt/backups/paperless-restic"
 RESTIC_PASSWORD_FILE="/root/.restic_password"
 BACKUP_SOURCE="/opt/paperless"
 
-# Initialisation du dépôt (première fois uniquement)
+# Initialisation du dépôt -> la première utilisation
 if [ ! -d "$RESTIC_REPOSITORY" ]; then
     echo "Initialisation du dépôt Restic..."
     restic init --repo "$RESTIC_REPOSITORY" --password-file "$RESTIC_PASSWORD_FILE"
 fi
 
 # Backup PostgreSQL
-echo "Backup de la base de données PostgreSQL..."
 sudo -u postgres pg_dump paperless > /tmp/paperless_db_backup.sql
 
 # Backup avec Restic
-echo "Création du snapshot Restic..."
 restic backup \
     --repo "$RESTIC_REPOSITORY" \
     --password-file "$RESTIC_PASSWORD_FILE" \
