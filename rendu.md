@@ -94,16 +94,16 @@ Redis est un daemon (`-server`).
 
 ```bash
 apt install -y postgresql
-sudo -u postgres psql -c "CREATE DATABASE paperless;"
-sudo -u postgres psql -c "CREATE USER paperless WITH ENCRYPTED PASSWORD 'YOUR_SECRET_PASS';"
-sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE paperless TO paperless;"
-sudo -u postgres psql -c "ALTER USER paperless WITH SUPERUSER;"
+sudo -u postgres psql <<EOF
+CREATE DATABASE paperless;
+CREATE USER paperless WITH ENCRYPTED PASSWORD 'YourSecurePasswordHere';
+GRANT ALL PRIVILEGES ON DATABASE paperless TO paperless;
 ```
 
 **Explication :**
 
 * `sudo -u postgres` exécute la commande avec l’utilisateur système PostgreSQL.
-* Le rôle `SUPERUSER` n’est pas recommandé en production (principe du moindre privilège).
+
 
 ---
 
