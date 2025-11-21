@@ -383,6 +383,7 @@ restic forget --repo "$RESTIC_REPOSITORY" \
 ## 6. Script d'installation complet
 
 ```bash
+
 #!/usr/bin/env bash
 set -e
 
@@ -413,6 +414,23 @@ apt install -y \
     libglib2.0-dev \
     libgirepository1.0-dev \
     gir1.2-pango-1.0
+
+
+apt update
+apt install -y postgresql postgresql-contrib
+
+# Start PostgreSQL service
+systemctl enable --now postgresql
+
+# Create database and user for Paperless
+sudo -u postgres psql <<EOF
+CREATE DATABASE paperless;
+CREATE USER paperless WITH ENCRYPTED PASSWORD 'YourSecurePasswordHere';
+GRANT ALL PRIVILEGES ON DATABASE paperless TO paperless;
+EOF
+
+
+
 
 if ! id "paperless" >/dev/null 2>&1; then
     adduser --system --group --home /var/lib/paperless paperless
@@ -471,15 +489,15 @@ systemctl daemon-reload
 systemctl enable --now paperless
 systemctl status paperless
 
-
-
 systemctl daemon-reload
 systemctl enable --now paperless
+
 
 echo "Paperless-NGX installed successfully!"
 echo "Accessible at: http://localhost:8000"
 echo "Default user creation:"
 echo "  source /opt/paperless/venv/bin/activate && paperless createsuperuser"
+
 
 
 ```
