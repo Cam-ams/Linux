@@ -203,9 +203,8 @@ ________________________________________________________________________________
 - [2. Installation du logiciel](#2-installation-du-logiciel)
 - [3. Backup automatisé](#3-backup-automatisé)
 - [4. Sécurité réseau](#4-sécurité-réseau)
-- [5. Monitoring](#5-monitoring)
-- [6. Lien avec les concepts théoriques](#6-lien-avec-les-concepts-théoriques)
-- [7. Conclusion](#7-conclusion)
+- [5. Lien avec les concepts théoriques](#5-lien-avec-les-concepts-théoriques)
+- [6. Conclusion](#7-conclusion)
 
 ---
 
@@ -751,7 +750,7 @@ findtime = 600
 action = iptables-multiport[name=paperless, port="8000", protocol=tcp]
 ```
 
-**🔗 Lien avec le cours :**  
+**Lien avec le cours :**  
 Fail2Ban analyse les **logs système** (cours "Le système d'exploitation") via des expressions régulières pour détecter :
 - **Bruteforce** : 5 tentatives de connexion échouées en 10 minutes
 - **Énumération web** : Tentatives d'accès à des URLs inexistantes
@@ -829,120 +828,9 @@ server {
 ```
 
 **Avantages du reverse proxy :**
-- ✅ HTTPS/TLS (avec Let's Encrypt)
-- ✅ Limitation de taux (rate limiting)
-- ✅ Compression gzip
-- ✅ Cache des fichiers statiques
+- HTTPS/TLS (avec Let's Encrypt)
+- Limitation de taux (rate limiting)
+- Compression gzip
+- Cache des fichiers statiques
 
 ---
-
-## 5. Monitoring
-
-### 5.1. Installation de Prometheus et Grafana
-
-#### 5.1.1. Installation de Prometheus
-
-```bash
-# Téléchargement
-wget https://github.com/prometheus/prometheus/releases/download/v2.45.0/prometheus-2.45.0.linux-amd64.tar.gz
-tar xvfz prometheus-*.tar.gz
-mv prometheus-2.45.0.linux-amd64 /opt/prometheus
-
-# Création utilisateur
-adduser --system --group --no-create-home prometheus
-
-# Configuration
-cat <<EOF > /opt/prometheus/prometheus.yml
-global:
-  scrape_interval: 15s
-
-scrape_configs:
-  - job_name: 'node_exporter'
-    static_configs:
-      - targets: ['localhost:9100']
-  
-  - job_name: 'paperless'
-    static_configs:
-      - targets: ['localhost:8000']
-EOF
-
-# Service systemd
-cat <<EOF > /etc/systemd/system/prometheus.service
-[Unit]
-Description=Prometheus
-After=network.target
-
-[Service]
-User=prometheus
-ExecStart=/opt/prometheus/prometheus \
-    --config.file=/opt/prometheus/prometheus.yml \
-    --storage.tsdb.path=/opt/prometheus/data \
-    --web.listen-address=127.0.0.1:9090
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-systemctl daemon-reload
-systemctl enable --now prometheus
-```
-
-**🔗 Lien avec le cours :**  
-`--web.listen-address=127.0.0.1:9090` écoute uniquement sur **localhost** (cours "Sécurité"). Le service n'est pas exposé sur le réseau externe, on y accède via **port forwarding SSH**.
-
-#### 5.1.2. Installation de Node Exporter
-
-```bash
-wget https://github.com/prometheus/node_exporter/releases/download/v1.6.0/node_exporter-1.6.0.linux-amd64.tar.gz
-tar xvfz node_exporter-*.tar.gz
-mv node_exporter-1.6.0.linux-amd64/node_exporter /usr/local/bin/
-
-# Service systemd
-cat <<EOF > /etc/systemd/system/node_exporter.service
-[Unit]
-Description=Node Exporter
-
-[Service]
-User=prometheus
-ExecStart=/usr/local/bin/node_exporter
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-systemctl daemon-reload
-systemctl enable --now node_exporter
-```
-
-**Métriques collectées :**
-- CPU, RAM, disque
-- I/O réseau
-- Processus système
-
-#### 5.1.3. Installation de Grafana
-
-```bash
-apt install -y software-properties-common
-wget -q -O - https://packages.grafana.com/gpg.key | apt-key add -
-echo "deb https://packages.grafana.com/oss/deb stable main" | tee /etc/apt/sources.list.d/grafana.list
-
-apt update
-apt install -y grafana
-
-# Configuration pour localhost uniquement
-sed -i 's/;http_addr =/http_addr = 127.0.0.1/' /etc/grafana/grafana.ini
-
-systemctl enable --now grafana-server
-```
-
-### 5.2. Accès sécurisé via Port Forwarding SSH
-
-```bash
-# Depuis votre machine locale
-ssh -L 3000:localhost:3000 -L 9090:localhost:9090 user@<IP_SERVEUR>
-
-# Accès web :
-# Grafana : http://localhost:3000 (admin / admin par défaut)
-# Prometheus : http://localhost:9090
-
-
