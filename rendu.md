@@ -1,29 +1,29 @@
-Voici ton **README.md propre, structuré et sans aucun emoji**, prêt à être utilisé sur GitHub :
-
----
-
 # Projet Paperless-NGX — Administration Linux
 
-**Auteurs :** MENOURY Ethan & DJENID Camélia
-**Date :** 21 Novembre 2025
-**Système :** Debian 13 (Trixie)
-**Service déployé :** Paperless-NGX
+ **Auteurs :** MENOURY Ethan & DJENID Camélia
 
+ **Date :** 21 Novembre 2025
+
+ **Système :** Debian 13 (Trixie)
+
+ **Service déployé :** Paperless-NGX
+ 
+Projet disponible sur GitHub : https://github.com/Cam-ams/Linux/edit/main/rendu.md
 ---
 
 ## Table des matières
 
 1. [Présentation](#présentation)
-2. [Architecture du projet](#architecture-du-projet)
-3. [Installation complète](#installation-complète)
+2. [Installation complète](#installation-complète)
 
    * [Préparation du système](#préparation-du-système)
    * [Build du frontend](#build-du-frontend)
    * [Backend Django](#installation-et-configuration-python)
    * [Services systemd](#services-systemd)
-4. [Diagnostic des erreurs](#diagnostic-des-erreurs)
-5. [Backup automatisé (théorique)](#backup-automatisé-théorique)
-6. [Scripts d'installation et d'automatisation](#scripts-dinstallation-et-dautomatisation)
+3. [Diagnostic des erreurs](#diagnostic-des-erreurs)
+4. [Backup automatisé (théorique)](#backup-automatisé-théorique)
+5. [Scripts d'installation et d'automatisation](#scripts-dinstallation-et-dautomatisation)
+   
 
 ---
 
@@ -44,22 +44,6 @@ Les objectifs couvrent :
 
 ---
 
-# Architecture du projet
-
-Paperless-NGX repose sur les composants suivants :
-
-| Composant     | Rôle                   |
-| ------------- | ---------------------- |
-| Python 3      | Backend Django         |
-| PostgreSQL    | Base de données        |
-| Redis         | Queue et cache         |
-| Tesseract OCR | Reconnaissance optique |
-| Gunicorn      | Serveur ASGI           |
-| Celery        | Traitement asynchrone  |
-| Node.js / npm | Build frontend         |
-| Systemd       | Gestion des services   |
-
----
 
 # Installation complète
 
@@ -259,10 +243,10 @@ systemctl status paperless-webserver.service
 
 ## Causes probables
 
-1. Frontend non construit
-2. Permissions incorrectes
-3. Mauvaise configuration Django
-4. API backend non accessible
+ ->  Frontend non construit
+ -> Permissions incorrectes
+ -> Mauvaise configuration Django
+ -> API backend non accessible
 
 ---
 
@@ -310,16 +294,5 @@ crontab -e
 0 2 * * * /opt/scripts/backup_paperless.sh >> /var/log/paperless_backup.log 2>&1
 ```
 
----
+## Scripts d'installation et d'automatisation
 
-# Scripts d'installation et d'automatisation
-
-Tous les scripts sont disponibles dans le dépôt GitHub du projet.
-
----
-
-Si tu veux, je peux aussi :
-
-* Ajouter un sommaire automatique GitHub,
-* Générer une version PDF,
-* Ajouter un script d’installation complet en Bash.
