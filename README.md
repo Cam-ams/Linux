@@ -218,8 +218,8 @@ ________________________________________________________________________________
 
 # Rapport Projet Paperless-NGX - Administration Linux
 
-**Auteurs :** [Vos noms]  
-**Date :** Novembre 2025  
+**Auteurs :** Ethan & Camélia Djenid  
+**Date :** 21 Novembre 2025  
 **Service déployé :** Paperless-NGX  
 **Système :** Debian 13 (Trixie)
 
@@ -239,43 +239,14 @@ ________________________________________________________________________________
 
 ## 1. Introduction
 
-### 1.1. Contexte du projet
-
-Paperless-NGX est une application open-source de gestion électronique de documents (GED) permettant de numériser, indexer et archiver des documents PDF de manière intelligente. Elle utilise l'OCR (reconnaissance optique de caractères) pour rendre les documents scannés recherchables et propose un système de tags, correspondants et types de documents pour faciliter l'organisation.
-
-### 1.2. Problématique
+### 1.1. Problématique
 
 > **Comment installer, configurer, sécuriser et maintenir automatiquement Paperless-NGX sous Debian 13 en utilisant uniquement des scripts Bash, tout en assurant la haute disponibilité, la sauvegarde des données et le monitoring du système ?**
 
-### 1.3. Architecture technique
-
-L'architecture de Paperless-NGX repose sur plusieurs composants interconnectés :
-
-```
-┌─────────────────────────────────────────────────────────┐
-│                    Client Web (Port 8000)                │
-└────────────────────────┬────────────────────────────────┘
-                         │
-┌────────────────────────▼────────────────────────────────┐
-│              Gunicorn + Uvicorn (ASGI)                   │
-│                 (paperless-web.service)                  │
-└────────────┬───────────────────────────┬─────────────────┘
-             │                           │
-┌────────────▼──────────┐   ┌───────────▼──────────────┐
-│   PostgreSQL          │   │   Redis                   │
-│   (Base de données)   │   │   (Cache & Queue)         │
-└───────────────────────┘   └──────────────────────────┘
-             │
-┌────────────▼────────────────────────────────────────────┐
-│         Document Consumer (paperless-consumer.service)   │
-│         + Tesseract OCR + ImageMagick + Poppler          │
-└──────────────────────────────────────────────────────────┘
-```
-
 **Composants principaux :**
-- **Python 3** avec environnement virtuel (isolation des dépendances)
-- **PostgreSQL** : Base de données relationnelle pour stocker les métadonnées
-- **Redis** : Gestion du cache et des files d'attente asynchrones
+- **Python 3** 
+- **PostgreSQL** : Base de données 
+- **Redis**
 - **Tesseract OCR** : Reconnaissance optique de caractères
 - **Gunicorn + Uvicorn** : Serveurs web ASGI pour Django
 - **Systemd** : Gestion des services et démarrage automatique
@@ -309,12 +280,11 @@ apt install -y \
 ```
 
 **Lien avec le cours :**  
-Cette étape illustre la **gestion des dépendances système** (cours "Le système d'exploitation", slide 9). Le gestionnaire de paquets `apt` (spécifique à Debian) résout automatiquement les dépendances transitives et évite les conflits de versions.
+Cette étape  la **gestion des dépendances système**. Le gestionnaire de paquets `apt` (spécifique à Debian) résout automatiquement les dépendances transitives et évite les conflits de versions.
 
 Les bibliothèques partagées comme `libpq-dev` (PostgreSQL) ou `libmagic-dev` sont nécessaires pour la compilation. Ces bibliothèques suivent le principe de **liaison dynamique** (fichiers `.so`), permettant :
--  Économie d'espace disque (factorisation)
+-  Économie d'espace disque
 -  Mises à jour de sécurité centralisées
-- Partage en mémoire entre processus
 
 #### 2.1.2. Activation du service Redis
 
@@ -323,10 +293,15 @@ systemctl enable --now redis-server
 ```
 
 **Lien avec le cours :**  
-`systemd` est le gestionnaire de services de Linux moderne (cours "Le système d'exploitation", slide 3). Redis fonctionne comme un **daemon** (`redis-server`), suivant la convention de nommage avec le suffixe "d".
+`systemd` est le gestionnaire de services de Linux. Redis fonctionne comme un **daemon** (`redis-server`), suivant la convention de nommage avec le suffixe "d".
 
 - `enable` : Configure le démarrage automatique au boot (via `/etc/systemd/system/`)
 - `--now` : Démarre immédiatement le service sans attendre le redémarrage
+
+
+documentation utilisé pour **REDIS** :
+https://restic.net/#installation
+https://blog.stephane-robert.info/docs/cloud/outils/restic/
 
 ### 2.2. Création d'un utilisateur système dédié
 
@@ -335,13 +310,12 @@ adduser --system --group --home /opt/paperless paperless || true
 ```
 
 **Lien avec le cours :**  
-Création d'un **utilisateur système** (cours "Administration Linux", slide 6). Cet utilisateur :
+Création d'un **utilisateur système**. Cet utilisateur :
 - N'a pas de shell interactif
 - N'a pas de mot de passe utilisable pour se connecter
 - Est dédié uniquement à l'exécution du service Paperless
-- Limite les dégâts en cas de compromission (principe du **moindre privilège**)
 
-Si un attaquant exploite une vulnérabilité dans Paperless, il sera confiné aux permissions de l'utilisateur `paperless` et ne pourra pas :
+Si un attaquant viens a arrivé dans Paperless, il n'accédera qu'aux permissions de l'utilisateur `paperless` et ne pourra pas :
 - Accéder aux fichiers d'autres utilisateurs
 - Modifier les configurations système dans `/etc`
 - Compromettre d'autres services
@@ -360,7 +334,7 @@ sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='paperless'" 
 ```
 
 **Lien avec le cours :**  
-- **Gestion des utilisateurs** : PostgreSQL possède son propre utilisateur système `postgres` (cours "Administration Linux", slide 5-6)
+- **Gestion des utilisateurs** : PostgreSQL possède son propre utilisateur système `postgres`
 - **sudo -u postgres** : Exécute les commandes avec les privilèges de l'utilisateur `postgres`, illustrant la commutation d'identité
 - **Idempotence** : Les vérifications avec `grep -q` permettent de relancer le script sans erreur
 - **Sécurité** : `read -s` masque le mot de passe lors de la saisie (pas d'affichage, pas d'enregistrement dans l'historique bash)
