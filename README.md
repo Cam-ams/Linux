@@ -235,11 +235,13 @@ echo "=============================================="
 echo " INSTALLATION TERMINÉE !"
 echo " Paperless est disponible sur : http://localhost:8000"
 echo "=============================================="
-````
+```
 
-Conclusion
-Ce projet nous a permis d’appliquer les notions essentielles du module Linux : gestion des services, permissions, sécurité, scripts Bash, environnement système et maintenance. Grâce à ces connaissances, nous avons pu créer un script complet capable d’automatiser l’installation et la configuration de Paperless sur Debian 13.
-Ce travail montre l’importance de l’automatisation pour faciliter les déploiements, rendre les installations plus fiables et garantir la reproductibilité des environnements. Il met aussi en évidence le rôle des bonnes pratiques d’administration système pour sécuriser et organiser un service.
+# Conclusion
+Ce projet nous a permis d’appliquer les notions essentielles du module Linux : gestion des services, permissions, sécurité, scripts Bash, environnement système et maintenance.
+Grâce à ces connaissances, nous avons pu créer un script complet capable d’automatiser l’installation et la configuration de Paperless sur Debian 13.
+Ce travail montre l’importance de l’automatisation pour faciliter les déploiements, rendre les installations plus fiables et garantir la reproductibilité des environnements.
+Il met aussi en évidence le rôle des bonnes pratiques d’administration système pour sécuriser et organiser un service.
 En résumé, ce projet nous a permis de comprendre comment combiner théorie et pratique pour installer, sécuriser et gérer un service réel de manière entièrement automatique. C’est une étape importante pour apprendre à administrer un système Linux de façon professionnelle.
 
 
